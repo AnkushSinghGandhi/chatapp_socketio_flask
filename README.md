@@ -27,3 +27,6 @@
   </a>
 </p>
 
+video call
+voice call
+end to end encryption
