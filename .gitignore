@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+ENV/
+env/
+
+# Flask-Specific
+instance/
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+
+# Environment variables
+.env
+*.env
+
+# IDE / Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System-specific files
+.DS_Store
+Thumbs.db
+
+# Migrations
+migrations/
+
+# Pytest cache
+.pytest_cache/
+.coverage
+
+# Cache files
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
