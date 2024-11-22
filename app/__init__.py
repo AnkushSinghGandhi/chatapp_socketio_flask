@@ -30,5 +30,8 @@ def create_app():
     # Register blueprints (for routes)
     from app.auth import auth
     app.register_blueprint(auth, url_prefix="/auth")
+    from app.room import room
+    app.register_blueprint(room, url_prefix="/room")
+
 
     return app
