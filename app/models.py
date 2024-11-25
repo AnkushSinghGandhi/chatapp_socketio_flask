@@ -6,6 +6,9 @@ class ChatRoom(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=True)  # Group rooms have names
     type = db.Column(db.String(20), nullable=False)  # "private" or "group"
+    description = db.Column(db.String(255), nullable=True)
+    avatar_url = db.Column(db.String(255), nullable=True)
+    last_message_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user1_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)

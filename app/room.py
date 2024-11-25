@@ -140,3 +140,24 @@ def remove_participant():
     db.session.commit()
 
     return jsonify({"message": "User removed from the room"}), 200
+
+@room.route("/details/<int:room_id>", methods=["GET"])
+@jwt_required()
+def room_details(room_id):
+    room = ChatRoom.query.get(room_id)
+    if not room:
+        return jsonify({"message": "Room not found"}), 404
+
+    participants = RoomParticipant.query.filter_by(room_id=room_id).all()
+    participant_list = [{"user_id": p.user_id, "role": p.role} for p in participants]
+
+    return jsonify({
+        "id": room.id,
+        "name": room.name,
+        "type": room.type,
+        "description": room.description,
+        "avatar_url": room.avatar_url,
+        "last_message_at": room.last_message_at,
+        "participants": participant_list
+    }), 200
+
