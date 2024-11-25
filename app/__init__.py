@@ -12,7 +12,7 @@ load_dotenv()
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
-socketio = SocketIO(async_mode="gevent")
+socketio = SocketIO()
 jwt = JWTManager()
 
 def create_app():
@@ -26,6 +26,7 @@ def create_app():
     migrate.init_app(app, db)
     socketio.init_app(app)
     jwt.init_app(app)
+    socketio.init_app(app, cors_allowed_origins="*")
 
     # Register blueprints (for routes)
     from app.auth import auth

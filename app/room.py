@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import ChatRoom, RoomParticipant, User
+from app.models import ChatRoom, RoomParticipant, User, Message
 
 room = Blueprint("room", __name__)
 
@@ -161,3 +161,40 @@ def room_details(room_id):
         "participants": participant_list
     }), 200
 
+@room.route("/send_message", methods=["POST"])
+@jwt_required()
+def send_message():
+    data = request.get_json()
+    room_id = data.get("room_id")
+    content = data.get("content")
+
+    if not room_id or not content:
+        return jsonify({"message": "Room ID and content are required"}), 400
+
+    user_id = get_jwt_identity()
+
+    room = ChatRoom.query.get(room_id)
+    if not room:
+        return jsonify({"message": "Room not found"}), 404
+
+    participant = RoomParticipant.query.filter_by(user_id=user_id, room_id=room_id).first()
+    if not participant:
+        return jsonify({"message": "You are not a participant in this room"}), 403
+
+    new_message = Message(
+        room_id=room_id,
+        user_id=user_id,
+        content=content
+    )
+    db.session.add(new_message)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Message sent successfully",
+        "data": {
+            "room_id": room_id,
+            "user_id": user_id,
+            "content": content,
+            "timestamp": new_message.timestamp
+        }
+    }), 201
