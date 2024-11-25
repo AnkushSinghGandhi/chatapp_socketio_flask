@@ -4,17 +4,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class ChatRoom(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=False)
-    type = db.Column(db.String(20), nullable=False)
+    name = db.Column(db.String(80), unique=True, nullable=True)  # Group rooms have names
+    type = db.Column(db.String(20), nullable=False)  # "private" or "group"
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user1_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    user2_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    __table_args__ = (db.UniqueConstraint("user1_id", "user2_id", name="unique_private_room"),)
 
     messages = db.relationship("Message", backref="room", lazy=True)
     participants = db.relationship("RoomParticipant", backref="room", lazy=True)
+
 
 class RoomParticipant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey("chat_room.id"), nullable=False)
+    role = db.Column(db.String(20), default="member")  # "member", "admin"
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Message(db.Model):

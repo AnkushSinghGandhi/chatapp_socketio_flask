@@ -69,3 +69,30 @@ def leave_room():
     db.session.commit()
 
     return jsonify({"message": "Left room successfully"}), 200
+
+@room.route("/private", methods=["POST"])
+@jwt_required()
+def private_room():
+    data = request.get_json()
+    other_user_id = data.get("user_id")
+    current_user_id = get_jwt_identity()
+
+    if not User.query.get(other_user_id):
+        return jsonify({"message": "User not found"}), 404
+
+    private_room = ChatRoom.query.filter(
+        ((ChatRoom.user1_id == current_user_id) & (ChatRoom.user2_id == other_user_id)) |
+        ((ChatRoom.user1_id == other_user_id) & (ChatRoom.user2_id == current_user_id))
+    ).first()
+
+    if not private_room:
+        private_room = ChatRoom(
+            type="private",
+            user1_id=current_user_id,
+            user2_id=other_user_id
+        )
+        db.session.add(private_room)
+        db.session.commit()
+
+    return jsonify({"room_id": private_room.id, "type": "private"}), 200
+
