@@ -48,7 +48,9 @@ def join_room():
     if RoomParticipant.query.filter_by(user_id=user_id, room_id=room_id).first():
         return jsonify({"message": "Already part of the room"}), 400
 
-    participant = RoomParticipant(user_id=user_id, room_id=room_id)
+    role = "admin" if not room.participants else "member"
+
+    participant = RoomParticipant(user_id=user_id, room_id=room_id, role=role)
     db.session.add(participant)
     db.session.commit()
 
@@ -96,3 +98,45 @@ def private_room():
 
     return jsonify({"room_id": private_room.id, "type": "private"}), 200
 
+@room.route("/role", methods=["PATCH"])
+@jwt_required()
+def update_role():
+    data = request.get_json()
+    room_id = data.get("room_id")
+    user_id = data.get("user_id")
+    new_role = data.get("role")
+    current_user_id = get_jwt_identity()
+
+    current_user = RoomParticipant.query.filter_by(user_id=current_user_id, room_id=room_id, role="admin").first()
+    if not current_user:
+        return jsonify({"message": "Only admins can update roles"}), 403
+
+    participant = RoomParticipant.query.filter_by(user_id=user_id, room_id=room_id).first()
+    if not participant:
+        return jsonify({"message": "User not in this room"}), 404
+
+    participant.role = new_role
+    db.session.commit()
+
+    return jsonify({"message": f"User role updated to {new_role}"}), 200
+
+@room.route("/remove", methods=["DELETE"])
+@jwt_required()
+def remove_participant():
+    data = request.get_json()
+    room_id = data.get("room_id")
+    user_id = data.get("user_id")
+    current_user_id = get_jwt_identity()
+
+    current_user = RoomParticipant.query.filter_by(user_id=current_user_id, room_id=room_id, role="admin").first()
+    if not current_user:
+        return jsonify({"message": "Only admins can remove participants"}), 403
+
+    participant = RoomParticipant.query.filter_by(user_id=user_id, room_id=room_id).first()
+    if not participant:
+        return jsonify({"message": "User not in this room"}), 404
+
+    db.session.delete(participant)
+    db.session.commit()
+
+    return jsonify({"message": "User removed from the room"}), 200
